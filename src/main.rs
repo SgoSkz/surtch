@@ -6,7 +6,7 @@ const BASE: &str = "https://youtube.com/results?";
 
 enum QResults {
     Video(Vec<Video>),
-    // Plylst,
+    Plylst(Vec<Playlist>),
 }
 
 // Get results and store each individual one in a struct
@@ -17,11 +17,11 @@ struct Video {
 }
 
 // For the future
-// struct Playlist {
-//     ply_id: String,
-//     title: String,
-//     thumb: String,
-// }
+struct Playlist {
+    ply_id: String,
+    title: String,
+    thumb: String,
+}
 
 // Coz no make client again and no compile regex again
 /// Created for the purpose of constants and not recompiling the regex. While this is a script that
@@ -100,20 +100,21 @@ impl Client {
                     if data["videoRenderer"].is_null() {
                         continue;
                     }
+                    let uniform = &data["videoRenderer"];
                     v.push(Video {
                         // NOTE: Part 3, Finding the video stuff
                         // This is the ID, AKA, the part after https://youtube.com/watch?v=[THIS PART]
-                        vid_id: data["videoRenderer"]["videoId"]
+                        vid_id: uniform["videoId"]
                             .as_str()
                             .unwrap()
                             .to_owned(),
                         // This is the title of the video
-                        title: data["videoRenderer"]["title"]["runs"][0]["text"]
+                        title: uniform["title"]["runs"][0]["text"]
                             .as_str()
                             .unwrap()
                             .to_owned(),
                         // This is the thumbnail link of the video
-                        thumb: data["videoRenderer"]["thumbnail"]["thumbnails"][0]["url"]
+                        thumb: uniform["thumbnail"]["thumbnails"][0]["url"]
                             .as_str()
                             .unwrap()
                             .to_owned(),
@@ -121,18 +122,55 @@ impl Client {
                 }
                 QResults::Video(v)
             },
+            QResults::Plylst(mut p) => { 
+                for data in reparse {
+                    if data["playlistRenderer"].is_null() {
+                        continue;
+                    }
+                    let uniform = &data["playlistRenderer"];
+                    p.push(Playlist {
+                        // NOTE: Part 3, Finding the video stuff
+                        // This is the ID, AKA, the part after https://youtube.com/watch?v=[THIS PART]
+                        ply_id: uniform["playlistId"]
+                            .as_str()
+                            .unwrap()
+                            .to_owned(),
+                        // This is the title of the video
+                        title: uniform["title"]["simpleText"]
+                            .as_str()
+                            .unwrap()
+                            .to_owned(),
+                        // This is the thumbnail link of the video
+                        // thumb: uniform["thumbnail"]["thumbnails"][0]["url"]
+                        //     .as_str()
+                        //     .unwrap()
+                        //     .to_owned(),
+                        thumb: "".to_owned(),
+                    });
+                }
+                QResults::Plylst(p)
+            },
         }
     }
 
     /// Progressively getting lazier
     /// Lists the videos inside the video vector
-    async fn list_vid(&self, json: String) -> () {
-        match self.get_results(json, QResults::Video(Vec::new())).await {
+    async fn list(&self, query_results: QResults) -> () {
+        match query_results {
             QResults::Video(v) => {
                 for data in v {
-                    println!(r#"Video Title: {}
-Video ID:    {}
-Video Thumb: {}"#, data.title, data.vid_id, data.thumb);
+                    println!(r#"
+Video Title:    {}
+Video ID:       {}
+Video Thumb:    {}"#, data.title, data.vid_id, data.thumb);
+                }
+            },
+            QResults::Plylst(p) => {
+                for data in p {
+                    println!(r#"
+Playlist Title: {}
+Playlist ID:    {}
+Playlist Thumb: {}"#, data.title, data.ply_id, data.thumb);
                 }
             },
         }
@@ -168,6 +206,9 @@ async fn main() {
     let data = local.get_json(html.to_owned()).await.unwrap();
     let json = local.prep_json(data).await;
     // local.pop_videos(json.to_owned()).await;
-    local.list_vid(json.to_owned()).await;
+    let videos = local.get_results(json.to_owned(), QResults::Video(Vec::new())).await;
+    local.list(videos).await;
+    let playlists = local.get_results(json.to_owned(), QResults::Plylst(Vec::new())).await;
+    local.list(playlists).await;
 }
 
