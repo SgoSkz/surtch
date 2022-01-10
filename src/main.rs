@@ -7,7 +7,6 @@ const BASE: &str = "https://youtube.com/results?";
 enum QResults {
     Video(Vec<Video>),
     // Plylst,
-    None,
 }
 
 // Get results and store each individual one in a struct
@@ -22,13 +21,6 @@ struct Video {
 //     ply_id: String,
 //     title: String,
 //     thumb: String,
-// }
-
-// Store all the results in here. Idk why I'm doing this, kinda just assuming it'll make something
-// easier in the future
-// struct QueryResults {
-    // vid: Vec<Video>,
-    // plylst: Vec<Playlist>,
 // }
 
 // Coz no make client again and no compile regex again
@@ -129,37 +121,8 @@ impl Client {
                 }
                 QResults::Video(v)
             },
-            QResults::None => QResults::None,
         }
     }
-
-    // /// Populate video vector
-    // async fn pop_videos(&mut self, data: String) -> () {
-    //     let reparse: Vec<Value> = serde_json::from_str(&data).unwrap();
-    //     for data in reparse {
-    //         if data["videoRenderer"].is_null() {
-    //             continue;
-    //         }
-    //         self.query.vid.push(Video {
-    //             // NOTE: Part 3, Finding the video stuff
-    //             // This is the ID, AKA, the part after https://youtube.com/watch?v=[THIS PART]
-    //             vid_id: data["videoRenderer"]["videoId"]
-    //                 .as_str()
-    //                 .unwrap()
-    //                 .to_owned(),
-    //             // This is the title of the video
-    //             title: data["videoRenderer"]["title"]["runs"][0]["text"]
-    //                 .as_str()
-    //                 .unwrap()
-    //                 .to_owned(),
-    //             // This is the thumbnail link of the video
-    //             thumb: data["videoRenderer"]["thumbnail"]["thumbnails"][0]["url"]
-    //                 .as_str()
-    //                 .unwrap()
-    //                 .to_owned(),
-    //         });
-    //     }
-    // }
 
     /// Progressively getting lazier
     /// Lists the videos inside the video vector
@@ -172,16 +135,7 @@ Video ID:    {}
 Video Thumb: {}"#, data.title, data.vid_id, data.thumb);
                 }
             },
-            QResults::None => println!("Nothing found...")
         }
-        // for data in self.query.vid {
-        //     println!(
-        //         r#"Video Title:	{}
-// Video ID:	{}
-// Video Thumb:	{}"#,
-        //         data.title, data.vid_id, data.thumb
-        //     );
-        // }
     }
 }
 
