@@ -1,4 +1,4 @@
-# youtube-scraper
+# Surtch
 A scraper for youtube that scrapes for video information
 
 ## Objective
